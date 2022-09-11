@@ -1,23 +1,25 @@
 #!/bin/bash
 set -e
 
-PATH_NAME=$1
+filename="$1"
 
 while true; do
-if [ -z "$PATH_NAME" ]; then
-    read -p "Path Name: " PATH_NAME
+if [ -z "$filename" ]; then
+    read -p "Filename: " filename
 else
     break
 fi
 done
 
 while true; do
-if [ -z "$COMMON_NAME" ]; then
-    read -p "Common Name: " COMMON_NAME
+if [ -z "$ISSUE_DOMAIN" ]; then
+    read -p "Domain: " ISSUE_DOMAIN
 else
     break
 fi
 done
+
+COMMON_NAME="${ISSUE_DOMAIN}"
 
 while true; do
 if [ -z "$ISSUE_DAYS" ]; then
@@ -27,23 +29,9 @@ else
 fi
 done
 
-mkdir -p $PATH_NAME/certs \
-    $PATH_NAME/crl \
-    $PATH_NAME/newcerts \
-    $PATH_NAME/csr \
-    $PATH_NAME/private
 
-cp issue-client.sh $PATH_NAME/
-cp issue-server.sh $PATH_NAME/
-cp issue-webserver.sh $PATH_NAME/
-
-touch $PATH_NAME/index.txt \
-&& echo 1000 > $PATH_NAME/serial
-
-
-
-KEYFILE="$PATH_NAME/private/${PATH_NAME}.key"
-CSRFILE="$PATH_NAME/csr/${PATH_NAME}.csr"
+KEYFILE="private/${filename}.key"
+CSRFILE="csr/${filename}.csr"
 
 openssl req -new -sha256 \
 -subj "/C=CN/L=Shenzhen/O=Dashuyun/CN=${COMMON_NAME}" \
@@ -59,9 +47,11 @@ distinguished_name=dn
 EOF
 )
 
-CERTFILE="$PATH_NAME/certs/${PATH_NAME}.crt"
+
+CERTFILE="certs/${filename}.crt"
 
 PWD=$(pwd)
+agent=$(basename $PWD)
 
 openssl ca \
 -md sha256 -days $ISSUE_DAYS \
@@ -80,8 +70,8 @@ database = $PWD/index.txt
 serial = $PWD/serial
 RANDFILE = $PWD/private/.rand
 
-private_key = $PWD/private/root.key
-certificate = $PWD/certs/root.crt
+private_key = $PWD/private/${agent}.key
+certificate = $PWD/certs/${agent}.crt
 
 policy = policy_strict
 x509_extensions = v3_ca
@@ -96,8 +86,11 @@ emailAddress            = optional
 
 [ v3_ca ]
 subjectKeyIdentifier=hash
-authorityKeyIdentifier=keyid:always,issuer
-basicConstraints=critical, CA:TRUE, pathlen:0
-keyUsage=critical, digitalSignature, cRLSign, keyCertSign
+authorityKeyIdentifier=keyid, issuer:aways
+basicConstraints=critical, CA:FALSE
+keyUsage=critical, digitalSignature, keyEncipherment
+subjectAltName=@alt_names
+[ alt_names ]
+DNS=${ISSUE_DOMAIN}
 EOF
 )

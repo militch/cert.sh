@@ -84,8 +84,8 @@ emailAddress            = optional
 
 [ v3_ca ]
 subjectKeyIdentifier=hash
-authorityKeyIdentifier=keyid, issuer:aways
+authorityKeyIdentifier=keyid:aways, issuer
 basicConstraints=critical, CA:FALSE
-keyUsage=critical, digitalSignature, keyEncipherment
+keyUsage=critical, nonRepudiation , digitalSignature, keyEncipherment
 EOF
 )
