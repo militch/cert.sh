@@ -1,8 +1,3 @@
-certs/
-crl/
-newcerts/
-private/
-csr/
+*
 */
-index.*
-serial*
+!*.sh
