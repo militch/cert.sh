@@ -3,5 +3,6 @@ crl/
 newcerts/
 private/
 csr/
+*/
 index.*
 serial*
